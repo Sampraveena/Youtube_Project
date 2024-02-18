@@ -453,42 +453,58 @@ def show_comments_table():
 
     return df3
 
+from PIL import Image
+
+
 # streamlit part
+page_bg_img='''
+<style>
+[data-testid="stAppViewContainer"]{
+    background-color:#101010;   
+}
+</style>'''
+st.markdown(page_bg_img,unsafe_allow_html=True)
+st.title(":white[YOUTUBE DATA HARVESTING AND WAREHOUSING]")
+st.divider()   
+channel_id = st.text_input(":red[Channel ID]")
+channels = channel_id.split(',')
+channels = [ch.strip() for ch in channels if ch]
+from PIL import Image
+img=Image.open("yt.png")
 with st.sidebar:
-    st.title(":blue[Youtube Data Harvesting And Warehousing]")
-    st.header("WELCOME")
-
-channel_id=st.text_input("Enter the Youtube Channel id")
-
-if st.button("collect and store data in MongoDB"):                      #This button is help to transfer the data into MongoDB 
-    ch_ids=[]
-    db=client["youtube_data"]
-    coll1=db["channel_details"]
-    for ch_data in coll1.find({},{"_id":0,"channel_information":1}):
-        ch_ids.append(ch_data["channel_information"]["channel_Id"])
-
-    if channel_id in ch_ids:                                           # To find out the Duplicate channel id (already exists in our database)
-        st.success("channel details already exists")
-    else:
-        insert=channel_details(channel_id)
-        st.success(insert)
-
-if st.button("Migrate to Sql"):
-    Table=tables()
-    st.success(Table)
-
-show_table=st.radio("SELECT THE TABLE FOR VIEW",("CHANNELS","PLAYLISTS","VIDEOS","COMMENTS"))
-
-if show_table=="CHANNELS":
+    st.image(img)
+    st.header(":white[_Welcome to YouTube Channel Analytics platform, designed to provide you with insights about any YouTube channel. With the ability to input a YouTube channel ID, this tool empowers you to retrieve data including channel name, subscriber count, total video count, playlist ID, video ID, and metrics such as likes, dislikes, and comments for each video.:rocket:_]")
+    
+col1, col2 = st.columns(2)
+with col1:
+    button1 = st.button("Collect Data",type="primary")
+with col2:
+    button2 = st.button("Migrate Data to SQL",type="primary")
+if button1:
+    for channel in channels:
+        ch_ids = []
+        db = client["YouTube_Data"]
+        col1 = db["channel details"]
+        for ch_data in col1.find({},{"_id":0,"channel_information":1}):
+            ch_ids.append(ch_data["channel_information"]["channel_Id"])
+        if channel in ch_ids:
+            st.success("Channel details of the given channel id: " + channel + " already exists")
+        else:
+            output = channel_details(channel)
+            st.success(output)
+            
+if button2:
+    display = tables()
+    st.success(display)
+    
+display_table = st.radio(":red[_SELECT THE TABLE BELOW TO VIEW_]",(":green[Channels]",":blue[Playlists]",":green[Videos]",":blue[Comments]"))
+if display_table == ":green[Channels]":
     show_channels_table()
-
-elif show_table=="PLAYLISTS":
+elif display_table == ":blue[Playlists]":
     show_playlists_table()
-
-elif show_table=="VIDEOS":
+elif display_table ==":green[Videos]":
     show_videos_table()
-
-elif show_table=="COMMENTS":
+elif display_table == ":blue[Comments]":
     show_comments_table()
     
 
